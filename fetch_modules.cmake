@@ -19,12 +19,12 @@ macro(FetchCmakeModules)
     FetchContent_MakeAvailable(${fetch_cmake_mdls_NAME})
 
     #  Add the fetched module directory to the cmake modules path
-    if(EXISTS "${fetch_cmake_mdls_SRC_DIR}/cmake")
-        list(APPEND CMAKE_MODULE_PATH "${fetch_cmake_mdls_SRC_DIR}/cmake")
+    if(EXISTS "./cmake")
+        list(APPEND CMAKE_MODULE_PATH "./cmake")
     else()
         message(FATAL_ERROR "FAILED TO ADD ${fetch_cmake_mdls_NAME} MODULE TO CMAKE_MODULES_PATH 
                 | reason: no such path exists 
-                | path: ${fetch_cmake_mdls_SRC_DIR}/cmake"
+                | path: ./cmake"
         )
     endif()
 endmacro()
