@@ -26,4 +26,5 @@ macro(FetchCmakeModules)
                 | reason: no such path exists 
                 | path: ${fetch_cmake_mdls_SRC_DIR}/cmake"
         )
+    endif()
 endmacro()
