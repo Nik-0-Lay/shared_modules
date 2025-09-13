@@ -1,4 +1,4 @@
-include(cmake/environment_setup.cmake)
+include(environment_setup.cmake)
 
 #  |PRIVATE|
 #  Tries to determine architecture and compiler versions, then installs dependencies using Conan

@@ -1,5 +1,5 @@
-include(cmake/install_conan_dependencies.cmake)
-include(cmake/install_secondary_dependencies.cmake)
+include(install_conan_dependencies.cmake)
+include(install_secondary_dependencies.cmake)
 
 #  |PUBLIC|
 macro(InstallDependencies)
