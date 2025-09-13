@@ -24,13 +24,13 @@ macro(FetchCmakeModules)
     #  Make contents of the module available
     FetchContent_MakeAvailable(${fetch_cmake_mdls_NAME})
 
-    if(EXISTS "${${fetch_cmake_mdls_NAME}_SOURCE_DIR}")
-        list(APPEND CMAKE_MODULE_PATH "${${fetch_cmake_mdls_NAME}_SOURCE_DIR}")
+    if(EXISTS "${${fetch_cmake_mdls_NAME}_SOURCE_DIR}/cmake")
+        list(APPEND CMAKE_MODULE_PATH "${${fetch_cmake_mdls_NAME}_SOURCE_DIR}/cmake")
     else()
         message(FATAL_ERROR "FAILED TO ADD ${fetch_cmake_mdls_NAME} MODULE TO CMAKE_MODULES_PATH"
             " | function: FetchCmakeModules"
             " | name: ${fetch_cmake_mdls_NAME}"
-            " | path: ${${fetch_cmake_mdls_NAME}_SOURCE_DIR}")
+            " | path: ${${fetch_cmake_mdls_NAME}_SOURCE_DIR}/cmake")
     endif()
 
     message(STATUS "CMAKE | 'FetchCmakeModules()' | end")
