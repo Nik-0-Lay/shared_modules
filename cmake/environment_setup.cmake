@@ -19,10 +19,10 @@ function (SetArchitectureVersion)
         elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
             set(ARCHITECTURE_VERSION "x86_64" PARENT_SCOPE)
         else()
-            message(FATAL_ERROR "FAILED TO DETECT ARCHITECTURE VERSION 
-                | function: SetArchitectureVersion 
-                | version value: ${ARCHITECTURE_VERSION} 
-                | CMAKE_SIZEOF_VOID_P: ${CMAKE_SIZEOF_VOID_P}"
+            message(FATAL_ERROR "FAILED TO DETECT ARCHITECTURE VERSION" 
+                "| function: SetArchitectureVersion" 
+                "| version value: ${ARCHITECTURE_VERSION}" 
+                "| CMAKE_SIZEOF_VOID_P: ${CMAKE_SIZEOF_VOID_P}"
             )
         endif()
     endif()
@@ -58,11 +58,11 @@ function(SetCompilerVersion)
             set(COMPILER_VERSION 17 PARENT_SCOPE)
         #  Unknown
         else()
-            message(FATAL_ERROR "FAILED TO DETECT COMPILER VERSION 
-                | function: SetCompilerVersion | version value: ${COMPILER_VERSION} 
-                | MSVC: ${MSVC} 
-                | CMAKE_CXX_COMPILER_VERSION: ${CMAKE_CXX_COMPILER_VERSION} 
-                | CMAKE_GENERATOR: ${CMAKE_GENERATOR}"
+            message(FATAL_ERROR "FAILED TO DETECT COMPILER VERSION" 
+                " | function: SetCompilerVersion | version value: ${COMPILER_VERSION}" 
+                " | MSVC: ${MSVC}" 
+                " | CMAKE_CXX_COMPILER_VERSION: ${CMAKE_CXX_COMPILER_VERSION}" 
+                " | CMAKE_GENERATOR: ${CMAKE_GENERATOR}"
             )
         endif()
     endif()
