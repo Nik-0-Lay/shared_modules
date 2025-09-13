@@ -1,4 +1,4 @@
-include(environment_setup)
+include(camke/environment_setup)
 
 #  |PRIVATE|
 #  Tries to determine architecture and compiler versions, then installs dependencies using Conan
