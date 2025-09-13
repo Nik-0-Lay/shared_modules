@@ -24,7 +24,7 @@ macro(FetchCmakeModules)
     #  Make contents of the module available
     FetchContent_MakeAvailable(${fetch_cmake_mdls_NAME})
 
-    if(EXISTS "${_FCM_CMAKE_ROOT}")
+    if(EXISTS "${${fetch_cmake_mdls_NAME}_SOURCE_DIR}")
         list(APPEND CMAKE_MODULE_PATH "${${fetch_cmake_mdls_NAME}_SOURCE_DIR}")
     else()
         message(FATAL_ERROR "FAILED TO ADD ${fetch_cmake_mdls_NAME} MODULE TO CMAKE_MODULES_PATH"
