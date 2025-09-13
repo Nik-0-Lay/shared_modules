@@ -8,6 +8,10 @@ macro(FetchCmakeModules)
         ${ARGN}
     )
 
+    if(NOT fetch_cmake_mdls_NAME)
+        set(_fetch_cmake_mdls_NAME "cmake_module")
+    endif()
+
     #  Declare module to fetch
     FetchContent_Declare(
         ${fetch_cmake_mdls_NAME}
@@ -17,4 +21,13 @@ macro(FetchCmakeModules)
 
     #  Make contents of the module available
     FetchContent_MakeAvailable(${fetch_cmake_mdls_NAME})
+
+    if(EXISTS "${_FCM_CMAKE_ROOT}")
+        list(APPEND CMAKE_MODULE_PATH "${${fetch_cmake_mdls_NAME}_SOURCE_DIR}")
+    else()
+        message(FATAL_ERROR
+            "FetchCmakeModules: The computed CMake module directory does not exist.\n"
+            " | name: ${fetch_cmake_mdls_NAME}"
+            " | path: ${${fetch_cmake_mdls_NAME}_SOURCE_DIR}}")
+    endif()
 endmacro()
