@@ -32,12 +32,14 @@ function(RunConanInstall)
 
     foreach(CONFIG IN LISTS CONAN_CONFIGURATIONS)
         message(STATUS "Installing dependencies | configuration: ${CONFIG}")
+        # Keep project layout/generator overrides out of dependency recipe builds so that dependencies could use
+		# their own generators (e.g. Ninja instead of Visual Studio generator for Qt)
         #  Invoke "conan install" command
         execute_process(
             COMMAND conan install "${CMAKE_CURRENT_SOURCE_DIR}"
                 --output-folder "${CMAKE_BINARY_DIR}"
-                -c "tools.cmake.cmake_layout:build_folder=."
-                -c "tools.cmake.cmaketoolchain:generator=${CMAKE_GENERATOR}"
+                -c "&:tools.cmake.cmake_layout:build_folder=."
+                -c "&:tools.cmake.cmaketoolchain:generator=${CMAKE_GENERATOR}"
                 -pr:b=default
                 -pr:h=default
                 -s arch=${ARCHITECTURE_VERSION} 
