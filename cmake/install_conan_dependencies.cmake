@@ -1,24 +1,34 @@
 include(cmake/environment_setup)
 
-option(CONAN_UPDATE "Check Conan remotes for newer dependency versions and revisions" OFF)
+option(CONAN_INSTALL "Regenerate Conan dependencies on the next configure" OFF)
+option(CONAN_UPDATE "Update Conan dependencies from remotes on the next configure" OFF)
 
 #  |PRIVATE|
-#  Tries to determine architecture and compiler versions, then installs dependencies using Conan
-#  Stops processing and outputs an error message if fails to install the dependencies for any configuration
+# Reuse generated dependencies during normal CMake regeneration. Installation is
+# needed only for a missing configuration or an explicit initialization request.
 function(RunConanInstall)
     cmake_parse_arguments(arg
-        "" 
-        "ARCH_VER;COMPILER_VER" 
+        ""
+        "ARCH_VER;COMPILER_VER"
         ""
         ${ARGN}
     )
 
+    # These requests apply to this invocation, including every configuration.
+    # Consume them before running Conan so a failed refresh cannot leave --update
+    # enabled for the next ALL_BUILD / ZERO_CHECK regeneration.
+    set(CONAN_INSTALL_REQUESTED "${CONAN_INSTALL}")
+    set(CONAN_UPDATE_REQUESTED "${CONAN_UPDATE}")
+    set(CONAN_INSTALL OFF CACHE BOOL "Regenerate Conan dependencies on the next configure" FORCE)
+    set(CONAN_UPDATE OFF CACHE BOOL "Update Conan dependencies from remotes on the next configure" FORCE)
+    set(CONAN_INSTALL OFF PARENT_SCOPE)
+    set(CONAN_UPDATE OFF PARENT_SCOPE)
+
     SetArchitectureVersion(ARCH_VER ${arg_ARCH_VER})
     SetCompilerVersion(COMPILER_VER ${arg_COMPILER_VER})
 
-    # Only request dependency updates when explicitly enabled.
     set(CONAN_UPDATE_ARGS)
-    if(CONAN_UPDATE)
+    if(CONAN_UPDATE_REQUESTED)
         list(APPEND CONAN_UPDATE_ARGS --update)
     endif()
 
@@ -30,11 +40,25 @@ function(RunConanInstall)
         set(CONAN_CONFIGURATIONS Debug Release)
     endif()
 
+    set(CONAN_GENERATORS_DIR "${CMAKE_BINARY_DIR}/generators")
+    set(CONAN_TOOLCHAIN_AVAILABLE FALSE)
+    if(EXISTS "${CONAN_GENERATORS_DIR}/conan_toolchain.cmake")
+        set(CONAN_TOOLCHAIN_AVAILABLE TRUE)
+    endif()
     foreach(CONFIG IN LISTS CONAN_CONFIGURATIONS)
+        string(TOLOWER "${CONFIG}" CONFIG_LOWER)
+        file(GLOB CONAN_CONFIG_DATA
+            "${CONAN_GENERATORS_DIR}/*-${CONFIG_LOWER}-${ARCHITECTURE_VERSION}-data.cmake")
+        if(NOT CONAN_INSTALL_REQUESTED AND NOT CONAN_UPDATE_REQUESTED
+                AND CONAN_TOOLCHAIN_AVAILABLE
+                AND CONAN_CONFIG_DATA)
+            message(STATUS "Reusing Conan dependencies | configuration: ${CONFIG}")
+            continue()
+        endif()
+
         message(STATUS "Installing dependencies | configuration: ${CONFIG}")
-        # Keep project layout/generator overrides out of dependency recipe builds so that dependencies could use
-		# their own generators (e.g. Ninja instead of Visual Studio generator for Qt)
-        #  Invoke "conan install" command
+        # Keep these overrides in the consumer recipe; dependencies must retain
+        # their own layout and generator (for example Ninja when building Qt).
         execute_process(
             COMMAND conan install "${CMAKE_CURRENT_SOURCE_DIR}"
                 --output-folder "${CMAKE_BINARY_DIR}"
@@ -42,7 +66,7 @@ function(RunConanInstall)
                 -c "&:tools.cmake.cmaketoolchain:generator=${CMAKE_GENERATOR}"
                 -pr:b=default
                 -pr:h=default
-                -s arch=${ARCHITECTURE_VERSION} 
+                -s arch=${ARCHITECTURE_VERSION}
                 -s compiler.version=${COMPILER_VERSION}
                 -s build_type=${CONFIG}
                 --build missing
@@ -51,13 +75,11 @@ function(RunConanInstall)
             RESULT_VARIABLE CONAN_INSTALL_RESULT
             COMMAND_ECHO STDOUT
         )
-    
-        #  Report result of the "conan install" command execution
+
         if(NOT CONAN_INSTALL_RESULT EQUAL 0)
             message(FATAL_ERROR "FAILED TO INSTALL DEPENDENCIES | function: RunConanInstall | configuration: ${CONFIG} | conan install result: ${CONAN_INSTALL_RESULT}")
-        else()
-            message(STATUS "Dependencies are successfuly installed | configuration: ${CONFIG}")
         endif()
+        message(STATUS "Dependencies are successfully installed | configuration: ${CONFIG}")
     endforeach()
 endfunction()
 
@@ -65,7 +87,7 @@ endfunction()
 macro(InstallConanDependencies)
     cmake_parse_arguments(install_cd_arg
         ""
-        "ARCH_VER;COMPILER_VER" 
+        "ARCH_VER;COMPILER_VER"
         ""
         ${ARGN}
     )
@@ -74,7 +96,7 @@ macro(InstallConanDependencies)
 
     RunConanInstall(ARCH_VER ${install_cd_arg_ARCH_VER} COMPILER_VER ${install_cd_arg_COMPILER_VER})
 
-    #  Include variables and configurations set up by conan into parent scope
+    # Include variables and configurations set up by Conan into parent scope.
     include("${CMAKE_BINARY_DIR}/generators/conan_toolchain.cmake")
 
     message(STATUS "CMAKE | 'InstallConanDependencies()' | end")
